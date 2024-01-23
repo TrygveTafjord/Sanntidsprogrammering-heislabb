@@ -5,10 +5,10 @@ import (
 	"net"
 )
 
-const LocalIP = "10.100.23.17"
+const LocalIP = "10.100.23.21"
 const ServerIp = "10.100.23.129"
-const fixedSizeport = "34933" 
-const serverPort = "20007"
+const fixedSizeport = "33546"
+const serverPort = "20011"
 
 func create_TCP_adress(serverIP string, port string) (*net.TCPAddr, error) {
 	addresstring := serverIP + ":" + port
@@ -19,47 +19,50 @@ func create_TCP_adress(serverIP string, port string) (*net.TCPAddr, error) {
 	return tcpAddr, nil
 }
 
-// func TCP_send(conn *net.UDPConn, stringToSend string) {
-// 	_, err := conn.Write([]byte(stringToSend))
-// 	if err != nil {
-// 		fmt.Print("There has been an error in UDP_send")
-// 	}
-// }
-
 func TCP_receive(conn *net.TCPConn) (string, error) {
 	buffer := make([]byte, 1024)
 	size_of_message, err := conn.Read(buffer)
 	if err != nil {
-		return "There was an error, i didnt read", err
+		return "There was an error, i didnt read TCP", err
 	}
 	return string(buffer[:size_of_message]), nil
 }
 
 func main() {
-    adrString := ServerIp + ":" + fixedSizeport
-	//  create_TCP_adress(ServerIp, fixedSizeport)
-	// if err != nil {
-	// 	fmt.Print(("This is wrong"))
-	// }
 
-	listener, err := net.ResolveTCPAddr("tcp", adrString)
+	adrString := LocalIP + ":" + serverPort
+	listener, err := net.Listen("tcp", adrString)
 	if err != nil {
-		fmt.Print(("This is wrong"))
+		fmt.Print(("This is wrong x2 wonky"))
+		return
 	}
-	conn, err := net.ListenTCP("udp", listener)
-	if err != nil {
-		fmt.Print(("This is wrong x2"))
+	fmt.Print("we started")
+
+	defer listener.Close()
+
+	for {
+		fmt.Print("we loop ")
+		conn, err := listener.Accept()
+		fmt.Print("under accept ")
+		if err != nil {
+			fmt.Print(("Conn error "))
+		}
+		fmt.Print("over go ")
+		go handleClient(conn)
+		fmt.Print("we loop later ")
+
 	}
+
+}
+
+func handleClient(conn net.Conn) {
 	defer conn.Close()
 
-
-	// conn, err := net.DialUDP("udp4", nil, udpAddr)
-	// if err != nil {
-	// 	fmt.Print("ERROR in dial up")
-	// }
-	// defer conn.Close()
-
-	returned_message, _ := TCP_receive(conn)
-	fmt.Printf("Vi fikk: %s", returned_message)
-
+	buffer := make([]byte, 1024)
+	size_of_message, err := conn.Read(buffer)
+	if err != nil {
+		fmt.Print("There was an error, i didnt read")
+		return
+	}
+	fmt.Print(buffer[:size_of_message])
 }
